@@ -8,7 +8,7 @@ type World struct {
 	Width    int
 	Height   int
 	Tiles    [][]*Tile
-	Entities []*Entity
+	Entities []EntityBehavior
 }
 
 func NewWorld() *World {
@@ -16,14 +16,14 @@ func NewWorld() *World {
 	for y := 0; y < WorldHeight; y++ {
 		tiles[y] = make([]*Tile, WorldWidth)
 		for x := 0; x < WorldWidth; x++ {
-			var density float32 = 0.0
+			var density float64 = 0.0
 			if rand.Float32() < 0.05 {
-				density = 0.2 + rand.Float32()*0.3
+				density = 0.2 + rand.Float64()*0.3
 			}
 			tiles[y][x] = NewTile(x, y, density)
 		}
 	}
-	entities := make([]*Entity, 0, StartingRabbits+StartingFoxes)
+	entities := make([]EntityBehavior, 0, StartingRabbits+StartingFoxes)
 	for i := 0; i < StartingRabbits; i++ {
 		entities = append(entities, NewRabbit(rand.Intn(WorldWidth), rand.Intn(WorldHeight)))
 	}
@@ -41,20 +41,63 @@ func NewWorld() *World {
 func (w *World) Count(s Species) int {
 	count := 0
 	for _, e := range w.Entities {
-		if e.species == s {
+		if e.GetEntity().species == s {
 			count++
 		}
 	}
 	return count
 }
 
-func (w *World) IsEntityAt(x, y int) bool {
-	for _, entity := range w.Entities {
+func (w *World) CountEntitiesAt(x, y int) int {
+	count := 0
+	for _, e := range w.Entities {
+		entity := e.GetEntity()
 		if entity.X == x && entity.Y == y {
-			return true
+			count++
 		}
 	}
-	return false
+	return count
+}
+
+func (w *World) GetTileAt(x, y int) *Tile {
+	if x < 0 || x >= w.Width || y < 0 || y >= w.Height {
+		return nil
+	}
+	return w.Tiles[y][x]
+}
+
+func (w *World) AddEntity(entity EntityBehavior) {
+	if entity == nil {
+		return
+	}
+	w.Entities = append(w.Entities, entity)
+}
+
+func (w *World) RemoveEntity(entity EntityBehavior) {
+	if entity == nil {
+		return
+	}
+	w.Entities = RemoveFromSlice(w.Entities, entity)
+}
+
+func (w *World) GetEntityAt(x, y int) *Entity {
+	for _, e := range w.Entities {
+		entity := e.GetEntity()
+		if entity.X == x && entity.Y == y {
+			return entity
+		}
+	}
+	return nil
+}
+
+func (w *World) GetEntityOfSpeciesAt(x, y int, species Species) *Entity {
+	for _, e := range w.Entities {
+		entity := e.GetEntity()
+		if entity.X == x && entity.Y == y && entity.species == species {
+			return entity
+		}
+	}
+	return nil
 }
 
 func (w *World) update() {
@@ -65,6 +108,6 @@ func (w *World) update() {
 	}
 
 	for _, entity := range w.Entities {
-		entity.Update()
+		entity.GetEntity().Update()
 	}
 }

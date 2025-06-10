@@ -5,42 +5,60 @@ import (
 	"math/rand"
 )
 
+type EntityBehavior interface {
+	Reproduce() EntityBehavior
+	Eat()
+	GetEntity() *Entity
+	GetEnergyLoss() float64
+	GetInitialEnergy() float64
+	GetReproductionCooldown() float64
+}
+
 type Species int
 
 const (
-	Rabbit Species = iota
-	Fox
+	FoxSpecies Species = iota
+	RabbitSpecies
 )
 
 type Entity struct {
-	X, Y      int
-	sprite    *ebiten.Image
-	isFlipped bool
-	species   Species
+	EntityBehavior
+	X, Y              int
+	sprite            *ebiten.Image
+	isFlipped         bool
+	species           Species
+	energy            float64
+	reproductionClock float64
 }
 
-func NewRabbit(x, y int) *Entity {
-	return &Entity{
-		X:         x,
-		Y:         y,
-		sprite:    RabbitSprite,
-		isFlipped: false,
-		species:   Rabbit,
-	}
-}
-
-func NewFox(x, y int) *Entity {
-	return &Entity{
-		X:         x,
-		Y:         y,
-		sprite:    FoxSprite,
-		isFlipped: false,
-		species:   Fox,
-	}
+func (e *Entity) CanReproduce() bool {
+	return e.reproductionClock <= 0 && e.energy > e.GetInitialEnergy()
 }
 
 func (e *Entity) Update() {
 	e.Move()
+	e.Eat()
+
+	world := CurrentGame.World
+	if other := world.GetEntityOfSpeciesAt(e.X, e.Y, e.species); other != nil {
+		if world.CountEntitiesAt(e.X, e.Y) < 3 && e.CanReproduce() && other.CanReproduce() && e != other && rand.Float32() < 0.1 {
+			child := e.Reproduce()
+			CurrentGame.World.AddEntity(child)
+			e.reproductionClock = e.GetReproductionCooldown()
+			// e.energy -= e.GetInitialEnergy() / 2
+			other.reproductionClock = other.GetReproductionCooldown()
+		}
+	}
+
+	e.energy -= e.GetEnergyLoss()
+	if e.energy <= 0 {
+		world.RemoveEntity(e)
+		return
+	}
+	if e.reproductionClock > 0 {
+		e.reproductionClock--
+	}
+
 }
 
 func (e *Entity) Draw(screen *ebiten.Image) {
@@ -61,22 +79,18 @@ func (e *Entity) Draw(screen *ebiten.Image) {
 }
 
 func (e *Entity) Move() {
-	if rand.Float32() < 0.5 {
-		dx := rand.Intn(3) - 1
-		dy := rand.Intn(3) - 1
-		world := CurrentGame.World
-		newX := Clamp(e.X+dx, 0, world.Width-1)
-		newY := Clamp(e.Y+dy, 0, world.Height-1)
+	world := CurrentGame.World
+	dx := rand.Intn(3) - 1
+	dy := rand.Intn(3) - 1
+	newX := Clamp(e.X+dx, 0, world.Width-1)
+	newY := Clamp(e.Y+dy, 0, world.Height-1)
 
-		if !world.IsEntityAt(newX, newY) {
-			e.X = newX
-			e.Y = newY
-		}
-
-		if dx < 0 {
-			e.isFlipped = false
-		} else if dx > 0 {
-			e.isFlipped = true
-		}
+	if dx < 0 {
+		e.isFlipped = false
+	} else if dx > 0 {
+		e.isFlipped = true
 	}
+	e.X = newX
+	e.Y = newY
+
 }

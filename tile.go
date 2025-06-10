@@ -6,14 +6,19 @@ import (
 	"math/rand"
 )
 
+const (
+	GrassSpreadChance = 0.001
+	GrassGrowthRate   = 0.01
+)
+
 type Tile struct {
 	X, Y                      int
-	GrassDensity              float32
+	GrassDensity              float64
 	AvailableSpreadDirections []int
 	RandomTileRotation        int
 }
 
-func NewTile(x, y int, density float32) *Tile {
+func NewTile(x, y int, density float64) *Tile {
 	return &Tile{
 		X:                         x,
 		Y:                         y,
@@ -32,7 +37,7 @@ func (t *Tile) Draw(screen *ebiten.Image) {
 	op.GeoM.Translate(float64(t.X*TileSize+s.X/2), float64(t.Y*TileSize+s.Y/2))
 
 	if t.GrassDensity > 0 {
-		alpha := 0.5 + (t.GrassDensity / 2)
+		alpha := float32(0.5 + (t.GrassDensity / 2))
 		op.ColorScale.Scale(alpha, alpha, alpha, alpha)
 		screen.DrawImage(GrassSprite, op)
 	} else {
@@ -46,10 +51,10 @@ func (t *Tile) Update(world *World) {
 	}
 
 	if t.GrassDensity < 1.0 {
-		t.GrassDensity = Clamp(t.GrassDensity+0.01, 0.0, 1.0)
+		t.GrassDensity = Clamp(t.GrassDensity+GrassGrowthRate, 0.0, 1.0)
 	}
 
-	if rand.Float32() < 0.01 {
+	if rand.Float32() < GrassSpreadChance && len(t.AvailableSpreadDirections) > 0 {
 		direction := []int{1, 2, 3, 4, 5, 6, 7, 8}
 		rand.Shuffle(len(direction), func(i, j int) {
 			direction[i], direction[j] = direction[j], direction[i]
@@ -80,7 +85,7 @@ func (t *Tile) Update(world *World) {
 			newY := Clamp(t.Y+dy, 0, world.Height-1)
 
 			if world.Tiles[newY][newX].GrassDensity == 0 {
-				world.Tiles[newY][newX].GrassDensity = 0.2 + rand.Float32()*0.3
+				world.Tiles[newY][newX].GrassDensity = 0.2 + rand.Float64()*0.3
 				spreadTo = dir
 				break
 			}
