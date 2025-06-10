@@ -1,6 +1,9 @@
 package main
 
-import "github.com/hajimehoshi/ebiten/v2"
+import (
+	"github.com/hajimehoshi/ebiten/v2"
+	"math/rand"
+)
 
 type Species int
 
@@ -16,35 +19,64 @@ type Entity struct {
 	species   Species
 }
 
+func NewRabbit(x, y int) *Entity {
+	return &Entity{
+		X:         x,
+		Y:         y,
+		sprite:    RabbitSprite,
+		isFlipped: false,
+		species:   Rabbit,
+	}
+}
+
+func NewFox(x, y int) *Entity {
+	return &Entity{
+		X:         x,
+		Y:         y,
+		sprite:    FoxSprite,
+		isFlipped: false,
+		species:   Fox,
+	}
+}
+
+func (e *Entity) Update() {
+	e.Move()
+}
+
 func (e *Entity) Draw(screen *ebiten.Image) {
 	if e.sprite == nil {
 		return
 	}
 
 	opts := &ebiten.DrawImageOptions{}
-	opts.GeoM.Translate(float64(e.X*TileSize), float64(e.Y*TileSize))
-
 	if e.isFlipped {
 		opts.GeoM.Scale(-1, 1)
-		opts.GeoM.Translate(float64(e.sprite.Bounds().Dx()), 0)
-		screen.DrawImage(e.sprite, opts)
+		opts.GeoM.Translate(float64((e.X+1)*TileSize), float64(e.Y*TileSize))
 	} else {
-		screen.DrawImage(e.sprite, opts)
+		opts.GeoM.Translate(float64(e.X*TileSize), float64(e.Y*TileSize))
+
 	}
+	screen.DrawImage(e.sprite, opts)
+
 }
 
-func (e *Entity) Move(dx, dy int, world *World) {
-	newX := Clamp(e.X+dx, 0, world.Width-1)
-	newY := Clamp(e.Y+dy, 0, world.Height-1)
+func (e *Entity) Move() {
+	if rand.Float32() < 0.5 {
+		dx := rand.Intn(3) - 1
+		dy := rand.Intn(3) - 1
+		world := CurrentGame.World
+		newX := Clamp(e.X+dx, 0, world.Width-1)
+		newY := Clamp(e.Y+dy, 0, world.Height-1)
 
-	if world.Tiles[newY][newX] == nil {
-		e.X = newX
-		e.Y = newY
-	}
+		if !world.IsEntityAt(newX, newY) {
+			e.X = newX
+			e.Y = newY
+		}
 
-	if dx < 0 {
-		e.isFlipped = false
-	} else if dx > 0 {
-		e.isFlipped = true
+		if dx < 0 {
+			e.isFlipped = false
+		} else if dx > 0 {
+			e.isFlipped = true
+		}
 	}
 }

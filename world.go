@@ -23,15 +23,22 @@ func NewWorld() *World {
 			tiles[y][x] = NewTile(x, y, density)
 		}
 	}
+	entities := make([]*Entity, 0, StartingRabbits+StartingFoxes)
+	for i := 0; i < StartingRabbits; i++ {
+		entities = append(entities, NewRabbit(rand.Intn(WorldWidth), rand.Intn(WorldHeight)))
+	}
+	for i := 0; i < StartingFoxes; i++ {
+		entities = append(entities, NewFox(rand.Intn(WorldWidth), rand.Intn(WorldHeight)))
+	}
 	return &World{
 		Width:    WorldWidth,
 		Height:   WorldHeight,
 		Tiles:    tiles,
-		Entities: []*Entity{},
+		Entities: entities,
 	}
 }
 
-func (w *World) count(s Species) int {
+func (w *World) Count(s Species) int {
 	count := 0
 	for _, e := range w.Entities {
 		if e.species == s {
@@ -41,10 +48,23 @@ func (w *World) count(s Species) int {
 	return count
 }
 
+func (w *World) IsEntityAt(x, y int) bool {
+	for _, entity := range w.Entities {
+		if entity.X == x && entity.Y == y {
+			return true
+		}
+	}
+	return false
+}
+
 func (w *World) update() {
 	for _, tileRow := range w.Tiles {
 		for _, tile := range tileRow {
 			tile.Update(w)
 		}
+	}
+
+	for _, entity := range w.Entities {
+		entity.Update()
 	}
 }

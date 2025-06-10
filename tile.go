@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"math"
 	"math/rand"
 )
 
@@ -9,6 +10,7 @@ type Tile struct {
 	X, Y                      int
 	GrassDensity              float32
 	AvailableSpreadDirections []int
+	RandomTileRotation        int
 }
 
 func NewTile(x, y int, density float32) *Tile {
@@ -17,16 +19,21 @@ func NewTile(x, y int, density float32) *Tile {
 		Y:                         y,
 		GrassDensity:              density,
 		AvailableSpreadDirections: []int{1, 2, 3, 4, 5, 6, 7, 8},
+		RandomTileRotation:        rand.Intn(4) * 90,
 	}
 }
 
-func (t *Tile) Draw(screen *ebiten.Image, x, y int) {
+func (t *Tile) Draw(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(float64(x), float64(y))
+	rand.NewSource(int64(t.X * t.Y))
+	s := GrassSprite.Bounds().Size()
+	op.GeoM.Translate(-float64(s.X)/2, -float64(s.Y)/2)
+	op.GeoM.Rotate(float64(t.RandomTileRotation) * (math.Pi / 180))
+	op.GeoM.Translate(float64(t.X*TileSize+s.X/2), float64(t.Y*TileSize+s.Y/2))
 
 	if t.GrassDensity > 0 {
-		alpha := 0.5 + (t.GrassDensity)/2
-		op.ColorScale.Scale(1, 1, 1, alpha)
+		alpha := 0.5 + (t.GrassDensity / 2)
+		op.ColorScale.Scale(alpha, alpha, alpha, alpha)
 		screen.DrawImage(GrassSprite, op)
 	} else {
 		screen.DrawImage(DirtSprite, op)

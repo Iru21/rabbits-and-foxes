@@ -12,10 +12,10 @@ import (
 var tileFiles embed.FS
 
 var (
-	GrassSprite *ebiten.Image
-	DirtSprite  *ebiten.Image
-	// RabbitSprite *ebiten.Image
-	// FoxSprite    *ebiten.Image
+	GrassSprite  *ebiten.Image
+	DirtSprite   *ebiten.Image
+	RabbitSprite *ebiten.Image
+	FoxSprite    *ebiten.Image
 )
 
 func LoadAssets() {
@@ -33,6 +33,6 @@ func LoadAssets() {
 
 	GrassSprite = load("assets/grass.png")
 	DirtSprite = load("assets/dirt.png")
-	// RabbitSprite = load("assets/rabbit.png")
-	// FoxSprite = load("assets/fox.png")
+	RabbitSprite = load("assets/rabbit.png")
+	FoxSprite = load("assets/fox.png")
 }
