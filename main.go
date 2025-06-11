@@ -31,10 +31,10 @@ func main() {
 	CurrentGame.ui.AddButton(*NewUIButton("Reset", windowWidth-50, 40, 40, 25, func() {
 		CurrentGame.Reset()
 	}))
-	CurrentGame.ui.AddButton(*NewUIButton("Speed Up", windowWidth-70, 70, 60, 25, func() {
+	CurrentGame.ui.AddButton(*NewUIButton("Speed Up", windowWidth-80, 70, 70, 25, func() {
 		CurrentGame.simulationSpeed += 0.01
 	}))
-	CurrentGame.ui.AddButton(*NewUIButton("Slow Down", windowWidth-70, 100, 60, 25, func() {
+	CurrentGame.ui.AddButton(*NewUIButton("Slow Down", windowWidth-80, 100, 70, 25, func() {
 		CurrentGame.simulationSpeed = math.Max(CurrentGame.simulationSpeed-0.01, 0.001)
 	}))
 	CurrentGame.ui.AddButton(*NewUIButton("Bigger Speed Up", windowWidth-120, 130, 110, 25, func() {
