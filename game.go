@@ -9,7 +9,7 @@ import (
 	"os"
 )
 
-var isHoldingLeftMouseButton = false
+var IsHoldingLeftMouseButton = false
 
 type Game struct {
 	ui                      *UI
@@ -61,13 +61,15 @@ func (g *Game) CheckHotkeys() {
 }
 
 func (g *Game) CheckClick() {
-	isPressed := inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) || isHoldingLeftMouseButton
+	isPressed := inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) || IsHoldingLeftMouseButton
 	if isPressed {
-		isHoldingLeftMouseButton = true
+		IsHoldingLeftMouseButton = true
 		x, y := ebiten.CursorPosition()
-		g.ui.HandleClick(x, y)
+		button := g.ui.HandleClick(x, y)
+		button.IsClicked = true
 		if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) {
-			isHoldingLeftMouseButton = false
+			IsHoldingLeftMouseButton = false
+			button.IsClicked = false
 		}
 	}
 }
