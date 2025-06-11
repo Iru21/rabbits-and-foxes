@@ -16,7 +16,7 @@ func NewWorld() *World {
 	for y := 0; y < WorldHeight; y++ {
 		tiles[y] = make([]*Tile, WorldWidth)
 		for x := 0; x < WorldWidth; x++ {
-			var density float64 = 0.0
+			var density = 0.0
 			if rand.Float32() < 0.05 {
 				density = 0.2 + rand.Float64()*0.3
 			}
@@ -77,17 +77,17 @@ func (w *World) RemoveEntity(entity EntityBehavior) {
 	if entity == nil {
 		return
 	}
-	w.Entities = RemoveFromSlice(w.Entities, entity)
-}
-
-func (w *World) GetEntityAt(x, y int) *Entity {
-	for _, e := range w.Entities {
-		entity := e.GetEntity()
-		if entity.X == x && entity.Y == y {
-			return entity
+	for i, e := range w.Entities {
+		if e.GetEntity().uuid == entity.GetEntity().uuid {
+			if i == len(w.Entities) {
+				w.Entities = w.Entities[:i]
+				return
+			} else {
+				w.Entities = append(w.Entities[:i], w.Entities[i+1:]...)
+			}
+			return
 		}
 	}
-	return nil
 }
 
 func (w *World) GetEntityOfSpeciesAt(x, y int, species Species) *Entity {
@@ -101,6 +101,14 @@ func (w *World) GetEntityOfSpeciesAt(x, y int, species Species) *Entity {
 }
 
 func (w *World) update() {
+	if CurrentGame.ticks%TPS == 0 {
+		rabbitCount := w.Count(RabbitSpecies)
+		foxCount := w.Count(FoxSpecies)
+		if rabbitCount == 0 || foxCount == 0 {
+			CurrentGame.Stop()
+		}
+	}
+
 	for _, tileRow := range w.Tiles {
 		for _, tile := range tileRow {
 			tile.Update(w)
@@ -108,6 +116,6 @@ func (w *World) update() {
 	}
 
 	for _, entity := range w.Entities {
-		entity.GetEntity().Update()
+		go entity.GetEntity().Update()
 	}
 }

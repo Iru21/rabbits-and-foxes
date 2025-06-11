@@ -41,7 +41,7 @@ func (g *Game) Update() error {
 			g.ticks = def.ticks
 			g.simulationSpeed = def.simulationSpeed
 		case ebiten.KeyQ:
-			os.Exit(0)
+			g.Stop()
 		}
 	}
 
@@ -54,15 +54,17 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	for y := 0; y < g.World.Height; y++ {
-		for x := 0; x < g.World.Width; x++ {
-			tile := g.World.Tiles[y][x]
-			tile.Draw(screen)
+	if Render {
+		for y := 0; y < g.World.Height; y++ {
+			for x := 0; x < g.World.Width; x++ {
+				tile := g.World.Tiles[y][x]
+				tile.Draw(screen)
+			}
 		}
-	}
 
-	for _, entity := range g.World.Entities {
-		entity.GetEntity().Draw(screen)
+		for _, entity := range g.World.Entities {
+			entity.GetEntity().Draw(screen)
+		}
 	}
 
 	g.Debug(screen)
@@ -90,4 +92,8 @@ func (g *Game) Debug(screen *ebiten.Image) {
 
 func (g *Game) Layout(_, _ int) (screenWidth, screenHeight int) {
 	return g.World.Width * TileSize, g.World.Height * TileSize
+}
+
+func (g *Game) Stop() {
+	os.Exit(0)
 }

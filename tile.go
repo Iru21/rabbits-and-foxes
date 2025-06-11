@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	GrassSpreadChance = 0.001
+	GrassSpreadChance = 0.01
 	GrassGrowthRate   = 0.01
 )
 

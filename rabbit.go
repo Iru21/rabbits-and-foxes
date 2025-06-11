@@ -1,9 +1,11 @@
 package main
 
+import "github.com/google/uuid"
+
 var RabbitInitialEnergy = 10.0
 var RabbitMaxEnergy = 20.0
-var RabbitEnergyLoss = 1.0
-var RabbitReproductionCooldown = 60.0
+var RabbitEnergyLoss = 0.2
+var RabbitReproductionCooldown = 2.0
 var RabbitEatGain = 5.0
 
 type Rabbit struct {
@@ -12,6 +14,9 @@ type Rabbit struct {
 }
 
 func (r *Rabbit) GetEntity() *Entity {
+	if r == nil {
+		return nil
+	}
 	return &r.Entity
 }
 
@@ -49,6 +54,7 @@ func (r *Rabbit) GetReproductionCooldown() float64 {
 func NewRabbit(x, y int) *Rabbit {
 	rabbit := &Rabbit{
 		Entity: Entity{
+			uuid:              uuid.New(),
 			X:                 x,
 			Y:                 y,
 			sprite:            RabbitSprite,

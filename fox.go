@@ -1,10 +1,12 @@
 package main
 
+import "github.com/google/uuid"
+
 var FoxInitialEnergy = 15.0
 var FoxMaxEnergy = 25.0
-var FoxEnergyLoss = 2.0
-var FoxReproductionCooldown = 100.0
-var FoxEatGain = 3.0
+var FoxEnergyLoss = 0.3
+var FoxReproductionCooldown = 7.0
+var FoxEatGain = 10.0
 
 type Fox struct {
 	EntityBehavior
@@ -22,7 +24,7 @@ func (f *Fox) Reproduce() EntityBehavior {
 func (f *Fox) Eat() {
 	world := CurrentGame.World
 	rabbit := world.GetEntityOfSpeciesAt(f.X, f.Y, RabbitSpecies)
-	if rabbit != nil {
+	if rabbit != nil && rabbit.energy > 0 {
 		f.energy += FoxEatGain
 		if f.energy < FoxMaxEnergy {
 			f.energy = FoxMaxEnergy
@@ -46,6 +48,7 @@ func (f *Fox) GetReproductionCooldown() float64 {
 func NewFox(x, y int) *Fox {
 	fox := &Fox{
 		Entity: Entity{
+			uuid:              uuid.New(),
 			X:                 x,
 			Y:                 y,
 			sprite:            FoxSprite,

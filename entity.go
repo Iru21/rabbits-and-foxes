@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/google/uuid"
 	"github.com/hajimehoshi/ebiten/v2"
 	"math/rand"
 )
@@ -23,6 +24,7 @@ const (
 
 type Entity struct {
 	EntityBehavior
+	uuid              uuid.UUID
 	X, Y              int
 	sprite            *ebiten.Image
 	isFlipped         bool
@@ -36,25 +38,24 @@ func (e *Entity) CanReproduce() bool {
 }
 
 func (e *Entity) Update() {
-	e.Move()
-	e.Eat()
-
 	world := CurrentGame.World
-	if other := world.GetEntityOfSpeciesAt(e.X, e.Y, e.species); other != nil {
-		if world.CountEntitiesAt(e.X, e.Y) < 3 && e.CanReproduce() && other.CanReproduce() && e != other && rand.Float32() < 0.1 {
-			child := e.Reproduce()
-			CurrentGame.World.AddEntity(child)
-			e.reproductionClock = e.GetReproductionCooldown()
-			// e.energy -= e.GetInitialEnergy() / 2
-			other.reproductionClock = other.GetReproductionCooldown()
-		}
-	}
-
 	e.energy -= e.GetEnergyLoss()
 	if e.energy <= 0 {
 		world.RemoveEntity(e)
 		return
 	}
+	e.Move()
+	e.Eat()
+
+	if other := world.GetEntityOfSpeciesAt(e.X, e.Y, e.species); other != nil {
+		if world.CountEntitiesAt(e.X, e.Y) < 3 && e.CanReproduce() && other.CanReproduce() && e != other {
+			child := e.Reproduce()
+			CurrentGame.World.AddEntity(child)
+			e.reproductionClock = e.GetReproductionCooldown()
+			other.reproductionClock = other.GetReproductionCooldown()
+		}
+	}
+
 	if e.reproductionClock > 0 {
 		e.reproductionClock--
 	}
