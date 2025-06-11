@@ -17,6 +17,9 @@ type Fox struct {
 }
 
 func (f *Fox) GetEntity() *Entity {
+	if f == nil {
+		return nil
+	}
 	return &f.Entity
 }
 

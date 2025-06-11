@@ -9,7 +9,10 @@ import (
 	"os"
 )
 
+var isHoldingLeftMouseButton = false
+
 type Game struct {
+	ui                      *UI
 	World                   *World
 	ticks                   int
 	simulationSpeed         float64
@@ -19,6 +22,7 @@ type Game struct {
 
 func NewGame() *Game {
 	return &Game{
+		ui:                      NewUI(),
 		World:                   NewWorld(),
 		ticks:                   0,
 		simulationSpeed:         0.2,
@@ -27,7 +31,16 @@ func NewGame() *Game {
 	}
 }
 
-func (g *Game) Update() error {
+func (g *Game) Reset() {
+	def := NewGame()
+	g.World = def.World
+	g.ticks = def.ticks
+	g.simulationSpeed = def.simulationSpeed
+	g.rabbitPopulationHistory = make([]int, 0)
+	g.foxPopulationHistory = make([]int, 0)
+}
+
+func (g *Game) CheckHotkeys() {
 	pressed := inpututil.AppendPressedKeys([]ebiten.Key{})
 	if len(pressed) > 0 {
 		switch pressed[0] {
@@ -40,22 +53,38 @@ func (g *Game) Update() error {
 		case ebiten.KeyLeft:
 			g.simulationSpeed = math.Max(g.simulationSpeed-1, 0.001)
 		case ebiten.KeyR:
-			def := NewGame()
-			g.World = def.World
-			g.ticks = def.ticks
-			g.simulationSpeed = def.simulationSpeed
-			g.rabbitPopulationHistory = make([]int, 0)
-			g.foxPopulationHistory = make([]int, 0)
+			g.Reset()
 		case ebiten.KeyQ:
 			g.Stop()
 		}
 	}
+}
 
+func (g *Game) CheckClick() {
+	isPressed := inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) || isHoldingLeftMouseButton
+	if isPressed {
+		isHoldingLeftMouseButton = true
+		x, y := ebiten.CursorPosition()
+		g.ui.HandleClick(x, y)
+		if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) {
+			isHoldingLeftMouseButton = false
+		}
+	}
+}
+
+func (g *Game) Simulate() {
 	modulo := math.Max(math.Pow(g.simulationSpeed, -1), 1.0)
 	if g.ticks%int(modulo) == 0 {
 		g.World.update()
 	}
 	g.ticks++
+}
+
+func (g *Game) Update() error {
+	g.CheckHotkeys()
+	g.CheckClick()
+	g.Simulate()
+
 	return nil
 }
 
@@ -73,6 +102,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		}
 	}
 
+	g.ui.Draw(screen)
 	g.Debug(screen)
 }
 
