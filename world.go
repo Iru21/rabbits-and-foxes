@@ -90,14 +90,44 @@ func (w *World) RemoveEntity(entity EntityBehavior) {
 	}
 }
 
-func (w *World) GetEntityOfSpeciesAt(x, y int, species Species) *Entity {
+func (w *World) GetEntityOfSpeciesAt(x, y int, species Species, ignore *Entity) *Entity {
 	for _, e := range w.Entities {
 		entity := e.GetEntity()
+		if entity == nil || (ignore != nil && entity.uuid == ignore.uuid) {
+			continue
+		}
 		if entity.X == x && entity.Y == y && entity.species == species {
 			return entity
 		}
 	}
 	return nil
+}
+
+func (w *World) FindNearestEntityOfSpeciesWithLimitedDistance(x, y int, species Species, ignore *Entity, maxDistance int) *Entity {
+	minDistance := maxDistance * maxDistance
+	var nearestEntity *Entity
+
+	for _, e := range w.Entities {
+		entity := e.GetEntity()
+		if entity == nil || (ignore != nil && entity.uuid == ignore.uuid) {
+			continue
+		}
+		if entity.species == species {
+			dx := entity.X - x
+			dy := entity.Y - y
+			distance := dx*dx + dy*dy
+			if distance < minDistance {
+				minDistance = distance
+				nearestEntity = entity
+			}
+		}
+	}
+
+	return nearestEntity
+}
+
+func (w *World) FindNearestEntityOfSpecies(x, y int, species Species, ignore *Entity) *Entity {
+	return w.FindNearestEntityOfSpeciesWithLimitedDistance(x, y, species, ignore, WorldWidth*WorldHeight)
 }
 
 func (w *World) update() {

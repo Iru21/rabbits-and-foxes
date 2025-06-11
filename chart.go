@@ -24,14 +24,6 @@ func DrawChart(rabbits, foxes []int) {
 		foxPoints[i].Y = float64(foxes[i])
 	}
 
-	//err := plotutil.AddLinePoints(p,
-	//	"Rabbits", rabbitPoints,
-	//	"Foxes", foxPoints,
-	//)
-	//if err != nil {
-	//	panic(err)
-	//}
-
 	rabbitsLine, err := plotter.NewLine(rabbitPoints)
 	if err != nil {
 		panic(err)

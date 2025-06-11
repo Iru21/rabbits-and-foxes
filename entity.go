@@ -3,11 +3,11 @@ package main
 import (
 	"github.com/google/uuid"
 	"github.com/hajimehoshi/ebiten/v2"
-	"math/rand"
 )
 
 type EntityBehavior interface {
 	Reproduce() EntityBehavior
+	Move()
 	Eat()
 	GetEntity() *Entity
 	GetEnergyLoss() float64
@@ -37,6 +37,17 @@ func (e *Entity) CanReproduce() bool {
 	return e.reproductionClock <= 0 && e.energy > e.GetInitialEnergy()
 }
 
+func (e *Entity) FindPartnerIfCanRepoduce() *Entity {
+	if !e.CanReproduce() {
+		return nil
+	}
+	world := CurrentGame.World
+	if nearestPartner := world.FindNearestEntityOfSpecies(e.X, e.Y, FoxSpecies, e); nearestPartner != nil && nearestPartner.CanReproduce() {
+		return nearestPartner.GetEntity()
+	}
+	return nil
+}
+
 func (e *Entity) Update() {
 	world := CurrentGame.World
 	e.energy -= e.GetEnergyLoss()
@@ -47,7 +58,7 @@ func (e *Entity) Update() {
 	e.Move()
 	e.Eat()
 
-	if other := world.GetEntityOfSpeciesAt(e.X, e.Y, e.species); other != nil {
+	if other := world.GetEntityOfSpeciesAt(e.X, e.Y, e.species, e); other != nil {
 		if world.CountEntitiesAt(e.X, e.Y) < 3 && e.CanReproduce() && other.CanReproduce() && e != other {
 			child := e.Reproduce()
 			CurrentGame.World.AddEntity(child)
@@ -76,22 +87,5 @@ func (e *Entity) Draw(screen *ebiten.Image) {
 
 	}
 	screen.DrawImage(e.sprite, opts)
-
-}
-
-func (e *Entity) Move() {
-	world := CurrentGame.World
-	dx := rand.Intn(3) - 1
-	dy := rand.Intn(3) - 1
-	newX := Clamp(e.X+dx, 0, world.Width-1)
-	newY := Clamp(e.Y+dy, 0, world.Height-1)
-
-	if dx < 0 {
-		e.isFlipped = false
-	} else if dx > 0 {
-		e.isFlipped = true
-	}
-	e.X = newX
-	e.Y = newY
 
 }
