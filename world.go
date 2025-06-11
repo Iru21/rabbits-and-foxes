@@ -52,7 +52,7 @@ func (w *World) CountEntitiesAt(x, y int) int {
 	count := 0
 	for _, e := range w.Entities {
 		entity := e.GetEntity()
-		if entity.X == x && entity.Y == y {
+		if entity != nil && entity.X == x && entity.Y == y {
 			count++
 		}
 	}
@@ -101,10 +101,13 @@ func (w *World) GetEntityOfSpeciesAt(x, y int, species Species) *Entity {
 }
 
 func (w *World) update() {
-	if CurrentGame.ticks%TPS == 0 {
+	if CurrentGame.ticks%10 == 0 {
 		rabbitCount := w.Count(RabbitSpecies)
 		foxCount := w.Count(FoxSpecies)
-		if rabbitCount == 0 || foxCount == 0 {
+		CurrentGame.rabbitPopulationHistory = append(CurrentGame.rabbitPopulationHistory, rabbitCount)
+		CurrentGame.foxPopulationHistory = append(CurrentGame.foxPopulationHistory, foxCount)
+		if rabbitCount <= 1 || foxCount <= 1 {
+			println("Rabbits population:", rabbitCount, "Foxes Population:", foxCount)
 			CurrentGame.Stop()
 		}
 	}

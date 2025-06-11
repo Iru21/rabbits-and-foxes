@@ -10,16 +10,20 @@ import (
 )
 
 type Game struct {
-	World           *World
-	ticks           int
-	simulationSpeed float64
+	World                   *World
+	ticks                   int
+	simulationSpeed         float64
+	rabbitPopulationHistory []int
+	foxPopulationHistory    []int
 }
 
 func NewGame() *Game {
 	return &Game{
-		World:           NewWorld(),
-		ticks:           0,
-		simulationSpeed: 0.2,
+		World:                   NewWorld(),
+		ticks:                   0,
+		simulationSpeed:         0.2,
+		rabbitPopulationHistory: make([]int, 0),
+		foxPopulationHistory:    make([]int, 0),
 	}
 }
 
@@ -40,6 +44,8 @@ func (g *Game) Update() error {
 			g.World = def.World
 			g.ticks = def.ticks
 			g.simulationSpeed = def.simulationSpeed
+			g.rabbitPopulationHistory = make([]int, 0)
+			g.foxPopulationHistory = make([]int, 0)
 		case ebiten.KeyQ:
 			g.Stop()
 		}
@@ -95,5 +101,6 @@ func (g *Game) Layout(_, _ int) (screenWidth, screenHeight int) {
 }
 
 func (g *Game) Stop() {
+	DrawChart(g.rabbitPopulationHistory, g.foxPopulationHistory)
 	os.Exit(0)
 }
