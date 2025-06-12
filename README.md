@@ -54,14 +54,14 @@ A simple simulation of a predator-prey model written in go using ebitengine
 
 ## Keyboard hotkeys
 
-| Key        | Action |
-|------------| --- |
-| `Up arrow` | Speed up simulation by 0.01x |
-| `Down arrow` | Slow down simulation by 0.01x |
-| `Left arrow` | Decrease simulation speed by 1x |
+| Key           | Action |
+|---------------| --- |
+| `Up arrow`    | Speed up simulation by 0.01x |
+| `Down arrow`  | Slow down simulation by 0.01x |
+| `Left arrow`  | Decrease simulation speed by 1x |
 | `Right arrow` | Increase simulation speed by 1x |
-| `R` | Reset simulation |
-| `Space` | Pause simulation |
+| `R`           | Reset simulation |
+| `Q`           | Quit simulation |
 
 
 ## Installation
